@@ -21,14 +21,15 @@ import { Roles } from 'src/decorators/role.decorator';
 import { Role } from 'src/enums/role.enum';
 import { RoleGuard } from 'src/guards/role.guard';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
-@UseGuards(AuthGuard, RoleGuard)
+@UseGuards(ThrottlerGuard, AuthGuard, RoleGuard)
 @UseInterceptors(LogInterceptor)
 @Roles(Role.Admin)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
+  // @UseGuards(ThrottlerGuard)
   @Post()
   async create(@Body() data: CreateUserDTO) {
     return await this.userService.create(data);

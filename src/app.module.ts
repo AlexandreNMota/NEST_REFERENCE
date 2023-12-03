@@ -4,15 +4,24 @@ import { Module, forwardRef } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 @Module({
   imports: [
+    ThrottlerModule.forRoot({ throttlers: [{ ttl: 10, limit: 5 }] }),
     forwardRef(() => AuthModule),
     PrismaModule,
     forwardRef(() => UserModule),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
   exports: [AppService],
 })
 export class AppModule {}
