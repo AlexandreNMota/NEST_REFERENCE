@@ -14,7 +14,8 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user-decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -44,10 +45,15 @@ export class AuthController {
   async me(@User() user) {
     return { user };
   }
+
   @UseInterceptors(FileInterceptor('arquivo'))
   @UseGuards(AuthGuard)
   @Post('foto')
   async uploadFoto(@User() user, @UploadedFile() foto: Express.Multer.File) {
-    return { user, foto };
+    const result = await writeFile(
+      join(__dirname, '..', '..', 'storage', 'fotos', `foto-${user.id}.jpg`),
+      foto.buffer,
+    );
+    return { result };
   }
 }
