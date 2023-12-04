@@ -1,4 +1,11 @@
-import { Controller, Body, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Post,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { AuthLoginDTO } from './dto/auth-login.dto';
 import { AuthRegisterDTO } from './dto/auth-register.dto';
 import { AuthForgetDTO } from './dto/auth-forget.dto';
@@ -6,6 +13,7 @@ import { AuthResetDTO } from './dto/auth-reset.dto';
 import { AuthService } from './auth.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user-decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
@@ -35,5 +43,11 @@ export class AuthController {
   @Post('me')
   async me(@User() user) {
     return { user };
+  }
+  @UseInterceptors(FileInterceptor('arquivo'))
+  @UseGuards(AuthGuard)
+  @Post('foto')
+  async uploadFoto(@User() user, @UploadedFile() foto: Express.Multer.File) {
+    return { user, foto };
   }
 }
