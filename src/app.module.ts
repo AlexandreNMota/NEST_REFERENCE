@@ -1,3 +1,4 @@
+import { FileModule } from './file/file.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { Module, forwardRef } from '@nestjs/common';
@@ -9,6 +10,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 @Module({
   imports: [
+    FileModule,
     ThrottlerModule.forRoot({ throttlers: [{ ttl: 10, limit: 5 }] }),
     forwardRef(() => AuthModule),
     PrismaModule,
