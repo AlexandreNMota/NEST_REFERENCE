@@ -5,7 +5,11 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
   BadRequestException,
+  ParseFilePipe,
+  FileTypeValidator,
+  MaxFileSizeValidator,
 } from '@nestjs/common';
 import { AuthLoginDTO } from './dto/auth-login.dto';
 import { AuthRegisterDTO } from './dto/auth-register.dto';
@@ -14,7 +18,7 @@ import { AuthResetDTO } from './dto/auth-reset.dto';
 import { AuthService } from './auth.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user-decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
 import { FileService } from 'src/file/file.service';
 @Controller('auth')
@@ -53,7 +57,18 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('arquivo'))
   @UseGuards(AuthGuard)
   @Post('foto')
-  async uploadFoto(@User() user, @UploadedFile() foto: Express.Multer.File) {
+  async uploadFoto(
+    @User() user,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: 'image/' }),
+          new MaxFileSizeValidator({ maxSize: 1024 * 2000 }),
+        ],
+      }),
+    )
+    foto: Express.Multer.File,
+  ) {
     const path = join(
       __dirname,
       '..',
@@ -69,5 +84,14 @@ export class AuthController {
       throw new BadRequestException(e);
     }
     return { success: true };
+  }
+  @UseInterceptors(FilesInterceptor('arquivo'))
+  @UseGuards(AuthGuard)
+  @Post('fotos')
+  async uploadFotos(
+    @User() user,
+    @UploadedFiles() fotos: Express.Multer.File[],
+  ) {
+    return fotos;
   }
 }
