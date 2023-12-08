@@ -1,6 +1,5 @@
 import { FileModule } from './file/file.module';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { Module, forwardRef } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,12 +9,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
+import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [
     FileModule,
     ThrottlerModule.forRoot({ throttlers: [{ ttl: 10, limit: 5 }] }),
     forwardRef(() => AuthModule),
-    PrismaModule,
     forwardRef(() => UserModule),
     MailerModule.forRoot({
       transport: {
@@ -36,6 +35,16 @@ import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
           strict: true,
         },
       },
+    }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [],
+      synchronize: process.env.ENV === 'development',
     }),
   ],
   controllers: [AppController],
