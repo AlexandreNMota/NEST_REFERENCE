@@ -13,6 +13,7 @@ import { users } from '@prisma/client';
 import { AuthRegisterDTO } from './dto/auth-register.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class AuthService {
   private issuer = 'login';
@@ -22,6 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
+    private readonly mailer: MailerService,
   ) {}
 
   async createToken(user: users) {
@@ -87,6 +89,22 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Dados incorretos');
     }
+
+    const token = this.jwtService.sign(
+      {
+        id: user.id,
+      },
+      { expiresIn: '30 minutes', issuer: 'forget', audience: 'users' },
+    );
+    await this.mailer.sendMail({
+      subject: 'Recuperação de Senha',
+      to: 'alexandre.mota355@gmail.com',
+      template: 'forget',
+      context: {
+        name: user.name,
+        token: token,
+      },
+    });
 
     return true;
   }

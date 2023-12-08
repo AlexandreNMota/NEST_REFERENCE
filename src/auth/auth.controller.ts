@@ -85,6 +85,7 @@ export class AuthController {
     }
     return { success: true };
   }
+
   @UseInterceptors(FilesInterceptor('arquivo'))
   @UseGuards(AuthGuard)
   @Post('fotos')
